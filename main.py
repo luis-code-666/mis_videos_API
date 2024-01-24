@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Body
 from fastapi.responses import HTMLResponse
+from pydantic import baseModel
 
 
 # uvicorn main:app --reload --port 5000 --host 0.0.0.0
@@ -78,4 +79,12 @@ def update_movies(id:int, title: str = Body(), overview:str = Body(), year:int =
             item['year'] = year,
             item['rating'] = rating,
             item['category'] = category
+            return movies
+        
+#para eliminar parametros 
+@app.delete('/movies/{id}', tags=['movies'])
+def delete_movies(id: int):
+    for item in movies:
+        if item['id'] == id:
+            movies.remove(item)
             return movies
