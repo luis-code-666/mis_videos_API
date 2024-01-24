@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Body
 from fastapi.responses import HTMLResponse
-from pydantic import baseModel
+from pydantic import BaseModel
+from typing import Optional
 
 
 # uvicorn main:app --reload --port 5000 --host 0.0.0.0
@@ -15,6 +16,15 @@ app = FastAPI()
 app.title = "Mi aplicacion con FastAPI" #para cambiar el nombre
 app.version = "0.0.1" #para cambiar la version 
 
+class Movie(BaseModel):
+    id: Optional[int] = None
+    title: str
+    overview: str
+    year: int
+    rating: float
+    category: str
+    
+    
 movies = [
     {
         "id": 1,
@@ -59,26 +69,29 @@ def get_movies_by_category(category:str, year:int):
     return category
 
 @ app.post('/movies/', tags=['movies'])
-def create_movies(id:int = Body(), title: str = Body(), overview:str = Body(), year:int = Body(), rating:str = Body(), category:str = Body()):
-    movies.append({
+def create_movies(movie:Movie):
+# def create_movies(id:int = Body(), title: str = Body(), overview:str = Body(), year:int = Body(), rating:str = Body(), category:str = Body()):
+    movies.append(movie)
+    '''movies.append({
         "id": id,
         "title": title,
         "overview": overview,
         "year": year,
         "rating": rating,
         "category": category
-    })
+    })'''
     return movies
 #esto es para actualizar o editar datos 
 @app.put('/movies/{id}', tags=['movies'])
-def update_movies(id:int, title: str = Body(), overview:str = Body(), year:int = Body(), rating:str = Body(), category:str = Body()):
+# def update_movies(id:int, title: str = Body(), overview:str = Body(), year:int = Body(), rating:str = Body(), category:str = Body()):
+def update_movies(id:int, movie:Movie):
     for item in movies:
         if item['id'] == id:
-            item['title'] = title,
-            item['overview'] = overview,
-            item['year'] = year,
-            item['rating'] = rating,
-            item['category'] = category
+            item['title'] = movie.title
+            item['overview'] = movie.overview
+            item['year'] = movie.year
+            item['rating'] = movie.rating
+            item['category'] = movie.category
             return movies
         
 #para eliminar parametros 
