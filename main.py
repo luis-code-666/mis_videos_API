@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body
+from fastapi import FastAPI, Body,Path, Query 
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -21,10 +21,10 @@ class Movie(BaseModel):
     #como poner su default en la logica
     #title: str = Field(default="Mi pelicula", min_length=5, max_length=15)
     title: str = Field(min_length=5, max_length=15)
-    overview: str = Field(min_length=15, max_length=5)
+    overview: str = Field(min_length=15, max_length=50)
     year: int = Field(le=2022)
-    rating: float
-    category: str
+    rating: float = Field(ge=1, le=10)
+    category: str = Field(min_length=5, max_length=15)
     
     class Config:
         # se declara ahi con json para que pueda jalar loq ue se esta escribiendo 
@@ -70,7 +70,8 @@ def get_movies():
 
 #con parametro por ruta
 @app.get('/movies/{id}', tags=['movies'])
-def get_movies_(id: int):
+#,etodo PATH es para validad los parametros de ruta para en las funciones 
+def get_movies_(id: int = Path(ge=1, le=2000)):
     #para el filtrado de las peliculas 
     for item in movies:
         if item["id"] == id:
@@ -79,9 +80,11 @@ def get_movies_(id: int):
 
 #filtrado de peliculas por su categoria 
 @app.get('/movies/', tags=['movies'])
-def get_movies_by_category(category:str, year:int):
-    #return [item for item in  movies if item['category'] == category ]
-    return category
+# def get_movies_by_category(category:str, year:int):
+#validaciones de los parametros 
+def get_movies_by_category(category:str = Query(min_length=5, max_length=15)):
+    return [item for item in  movies if item['category'] == category ]
+    #return category
 
 @ app.post('/movies/', tags=['movies'])
 def create_movies(movie:Movie):
