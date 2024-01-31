@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Body,Path, Query 
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 
 
 # uvicorn main:app --reload --port 5000 --host 0.0.0.0
@@ -32,7 +32,7 @@ class Movie(BaseModel):
             "example": {
                 "id": 1,
                 "title": "Mi pelicula",
-                "overview": "secription de la pelicula",
+                "overview": "Description de la pelicula",
                 "year": 2022,
                 "rating": 9.8,
                 "category": "Accion"
@@ -64,30 +64,32 @@ def message():
     #return "Hello, world!"
     return HTMLResponse('<h1> Hello, world!</h1>')
 
-@app.get('/movies', tags=['movies'])
-def get_movies():
-    return movies
+@app.get('/movies', tags=['movies'], response_model=List[Movie])
+#esa list se puede colocar en la funcion que se puede devollver
+def get_movies() -> List[Movie]:
+    return JSONResponse(content=[movies])
 
 #con parametro por ruta
-@app.get('/movies/{id}', tags=['movies'])
+@app.get('/movies/{id}', tags=['movies'], response_model=Movie)
 #,etodo PATH es para validad los parametros de ruta para en las funciones 
-def get_movies_(id: int = Path(ge=1, le=2000)):
+def get_movie(id: int = Path(ge=1, le=2000)) -> Movie:
     #para el filtrado de las peliculas 
     for item in movies:
         if item["id"] == id:
-            return item
-    return []
+            return JSONResponse(content=item)
+    return JSONResponse(content=[])
 
 #filtrado de peliculas por su categoria 
-@app.get('/movies/', tags=['movies'])
+@app.get('/movies/', tags=['movies'], response_model=List[Movie])
 # def get_movies_by_category(category:str, year:int):
 #validaciones de los parametros 
-def get_movies_by_category(category:str = Query(min_length=5, max_length=15)):
-    return [item for item in  movies if item['category'] == category ]
+def get_movies_by_category(category:str = Query(min_length=5, max_length=15)) -> List[Movie]:
+    data = [item for item in  movies if item['category'] == category ]
+    return JSONResponse(content=[data])
     #return category
 
-@ app.post('/movies/', tags=['movies'])
-def create_movies(movie:Movie):
+@ app.post('/movies', tags=['movies'], response_model=dict)
+def create_movie(movie:Movie) -> dict:
 # def create_movies(id:int = Body(), title: str = Body(), overview:str = Body(), year:int = Body(), rating:str = Body(), category:str = Body()):
     movies.append(movie)
     '''movies.append({
@@ -98,11 +100,11 @@ def create_movies(movie:Movie):
         "rating": rating,
         "category": category
     })'''
-    return movies
+    return JSONResponse(content={"menssage":"Se ha registrado la pelicula"})
 #esto es para actualizar o editar datos 
-@app.put('/movies/{id}', tags=['movies'])
+@app.put('/movies/{id}', tags=['movies'], response_model=dict)
 # def update_movies(id:int, title: str = Body(), overview:str = Body(), year:int = Body(), rating:str = Body(), category:str = Body()):
-def update_movies(id:int, movie:Movie):
+def update_movies(id:int, movie:Movie) -> dict:
     for item in movies:
         if item['id'] == id:
             item['title'] = movie.title
@@ -110,12 +112,12 @@ def update_movies(id:int, movie:Movie):
             item['year'] = movie.year
             item['rating'] = movie.rating
             item['category'] = movie.category
-            return movies
+            return JSONResponse(content={"menssage":"Se ha modificado la pelicula"})
         
 #para eliminar parametros 
-@app.delete('/movies/{id}', tags=['movies'])
-def delete_movies(id: int):
+@app.delete('/movies/{id}', tags=['movies'], response_model=dict)
+def delete_movies(id: int)-> dict:
     for item in movies:
         if item['id'] == id:
             movies.remove(item)
-            return movies
+            return JSONResponse(content={"menssage":"Se ha eliminado la pelicula"})
