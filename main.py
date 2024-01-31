@@ -2,7 +2,8 @@ from fastapi import FastAPI, Body,Path, Query
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, Field
 from typing import Optional, List
-
+# cargando el pyjwt para  crear la librteria de los token
+from jwt_manager import create_token
 
 # uvicorn main:app --reload --port 5000 --host 0.0.0.0
 # la palabra --reload es para que se recarge automaticamente
@@ -14,7 +15,14 @@ from typing import Optional, List
 #parametro por ruta 
 app = FastAPI()
 app.title = "Mi aplicacion con FastAPI" #para cambiar el nombre
-app.version = "0.0.1" #para cambiar la version 
+app.version = "0.0.1" #para cambiar la version
+
+ 
+#crear un nuevo modelo para el usuario
+class User(BaseModel):
+    email: str
+    password: str
+
 
 class Movie(BaseModel):
     id: Optional[int] = None
@@ -63,6 +71,13 @@ movies = [
 def message():
     #return "Hello, world!"
     return HTMLResponse('<h1> Hello, world!</h1>')
+#crear una ruta para que pueda loguearse el usuario
+@app.post('/login', tags=['auth'])
+def login(user: User):
+    return user
+
+
+
 # colocando los codigos de eroor de 200, 300, 400, 500
 @app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=200)
 #esa list se puede colocar en la funcion que se puede devollver
