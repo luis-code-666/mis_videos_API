@@ -63,32 +63,32 @@ movies = [
 def message():
     #return "Hello, world!"
     return HTMLResponse('<h1> Hello, world!</h1>')
-
-@app.get('/movies', tags=['movies'], response_model=List[Movie])
+# colocando los codigos de eroor de 200, 300, 400, 500
+@app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=200)
 #esa list se puede colocar en la funcion que se puede devollver
 def get_movies() -> List[Movie]:
-    return JSONResponse(content=[movies])
+    return JSONResponse(status_code=200, content=[movies])
 
 #con parametro por ruta
-@app.get('/movies/{id}', tags=['movies'], response_model=Movie)
+@app.get('/movies/{id}', tags=['movies'], response_model=Movie, status_code=200)
 #,etodo PATH es para validad los parametros de ruta para en las funciones 
 def get_movie(id: int = Path(ge=1, le=2000)) -> Movie:
     #para el filtrado de las peliculas 
     for item in movies:
         if item["id"] == id:
-            return JSONResponse(content=item)
-    return JSONResponse(content=[])
+            return JSONResponse(status_code=200, content=item)
+    return JSONResponse(status_code=404, content=[])
 
 #filtrado de peliculas por su categoria 
-@app.get('/movies/', tags=['movies'], response_model=List[Movie])
+@app.get('/movies/', tags=['movies'], response_model=List[Movie], status_code=200)
 # def get_movies_by_category(category:str, year:int):
 #validaciones de los parametros 
 def get_movies_by_category(category:str = Query(min_length=5, max_length=15)) -> List[Movie]:
     data = [item for item in  movies if item['category'] == category ]
-    return JSONResponse(content=[data])
+    return JSONResponse(status_code=200, content=[data])
     #return category
 
-@ app.post('/movies', tags=['movies'], response_model=dict)
+@ app.post('/movies', tags=['movies'], response_model=dict, status_code=201)
 def create_movie(movie:Movie) -> dict:
 # def create_movies(id:int = Body(), title: str = Body(), overview:str = Body(), year:int = Body(), rating:str = Body(), category:str = Body()):
     movies.append(movie)
@@ -100,9 +100,9 @@ def create_movie(movie:Movie) -> dict:
         "rating": rating,
         "category": category
     })'''
-    return JSONResponse(content={"menssage":"Se ha registrado la pelicula"})
+    return JSONResponse(status_code=201, content={"menssage":"Se ha registrado la pelicula"})
 #esto es para actualizar o editar datos 
-@app.put('/movies/{id}', tags=['movies'], response_model=dict)
+@app.put('/movies/{id}', tags=['movies'], response_model=dict, status_code=200)
 # def update_movies(id:int, title: str = Body(), overview:str = Body(), year:int = Body(), rating:str = Body(), category:str = Body()):
 def update_movies(id:int, movie:Movie) -> dict:
     for item in movies:
@@ -112,12 +112,12 @@ def update_movies(id:int, movie:Movie) -> dict:
             item['year'] = movie.year
             item['rating'] = movie.rating
             item['category'] = movie.category
-            return JSONResponse(content={"menssage":"Se ha modificado la pelicula"})
+            return JSONResponse(status_code=200, content={"menssage":"Se ha modificado la pelicula"})
         
 #para eliminar parametros 
-@app.delete('/movies/{id}', tags=['movies'], response_model=dict)
+@app.delete('/movies/{id}', tags=['movies'], response_model=dict, status_code=200)
 def delete_movies(id: int)-> dict:
     for item in movies:
         if item['id'] == id:
             movies.remove(item)
-            return JSONResponse(content={"menssage":"Se ha eliminado la pelicula"})
+            return JSONResponse(status_code=200, content={"menssage":"Se ha eliminado la pelicula"})
