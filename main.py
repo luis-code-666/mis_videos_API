@@ -1,9 +1,13 @@
-from fastapi import FastAPI, Body,Path, Query 
+from fastapi import Depends,FastAPI, Body, HTTPException,Path, Query, Request
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.security.http import HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
-from typing import Optional, List
+from typing import Any, Coroutine, Optional, List
+
+from starlette.requests import Request
 # cargando el pyjwt para  crear la librteria de los token
-from jwt_manager import create_token
+from jwt_manager import create_token, validate_token
+from fastapi.security import HTTPBearer
 
 # uvicorn main:app --reload --port 5000 --host 0.0.0.0
 # la palabra --reload es para que se recarge automaticamente
@@ -17,7 +21,13 @@ app = FastAPI()
 app.title = "Mi aplicacion con FastAPI" #para cambiar el nombre
 app.version = "0.0.1" #para cambiar la version
 
- 
+class JWTBearer(HTTPBearer):
+    async def __call__(self, request: Request):
+        auth = await super().__call__(request) 
+        data = validate_token(auth.credentials)
+        if data['email'] != "admin@gmail.com":
+            raise HTTPException(status_code=403, detail="credenciales son invalidas")
+        
 #crear un nuevo modelo para el usuario
 class User(BaseModel):
     email: str
@@ -82,7 +92,7 @@ def login(user: User):
 
 
 # colocando los codigos de eroor de 200, 300, 400, 500
-@app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=200)
+@app.get('/movies', tags=['movies'], response_model=List[Movie], status_code=200, dependencies=[Depends(JWTBearer())])
 #esa list se puede colocar en la funcion que se puede devollver
 def get_movies() -> List[Movie]:
     return JSONResponse(status_code=200, content=[movies])
